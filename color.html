@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>masiro | Texture Color Analyzer Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    <title>masiro | Texture Color Analyzer Pro + Munsell</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&family=Inter:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #c9a96e; --bg: #050505; --card-bg: #121212; }
+        :root { --accent: #c9a96e; --bg: #050505; --card-bg: #121212; --text-muted: #666; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); color: #eee; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -15,31 +15,31 @@
 
         main { flex: 1; display: flex; padding: 20px; gap: 20px; overflow: hidden; }
 
-        /* 左側：画像プレビュー */
-        .viewport-container { flex: 2; position: relative; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: auto; }
-        #canvas { max-width: 100%; max-height: 100%; cursor: crosshair; box-shadow: 0 0 30px rgba(0,0,0,0.5); display: none; }
+        .viewport-container { flex: 1.8; position: relative; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: auto; }
+        #canvas { max-width: 100%; max-height: 100%; cursor: crosshair; box-shadow: 0 0 40px rgba(0,0,0,0.8); display: none; }
         .drop-hint { color: #444; text-align: center; pointer-events: none; }
 
-        /* 右側：解析パネル */
-        .inspector { flex: 0 0 350px; display: flex; flex-direction: column; gap: 15px; }
-        .card { background: var(--card-bg); border: 1px solid #222; padding: 20px; border-radius: 8px; }
-        .card h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 15px; border-left: 2px solid var(--accent); padding-left: 10px; }
+        .inspector { flex: 0 0 420px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .card { background: var(--card-bg); border: 1px solid #222; padding: 25px; border-radius: 8px; }
+        .card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 20px; border-left: 3px solid var(--accent); padding-left: 12px; }
 
-        .color-display { display: flex; gap: 15px; align-items: center; }
-        .swatch { width: 70px; height: 70px; border-radius: 4px; border: 1px solid #333; background: #222; flex-shrink: 0; }
-        .values { flex: 1; font-family: 'Courier New', Courier, monospace; }
-        .val-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px; }
-        .val-label { color: #666; font-size: 11px; }
+        .swatch-large { width: 100%; height: 50px; border-radius: 6px; border: 1px solid #333; background: #222; margin-bottom: 15px; }
+        
+        .value-display { font-family: 'JetBrains Mono', monospace; }
+        .val-block { margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a; }
+        .val-label { font-size: 10px; color: var(--accent); opacity: 0.8; letter-spacing: 0.15em; display: block; margin-bottom: 4px; }
+        
+        .val-number { font-size: 34px; font-weight: 500; color: #fff; line-height: 1.1; letter-spacing: -0.02em; }
+        .val-hex { font-size: 28px; font-weight: 500; color: #fff; line-height: 1.1; }
+        .val-munsell { font-size: 28px; font-weight: 500; color: #fff; line-height: 1.1; color: #d0d0d0; }
 
         .btn-main { 
             background: transparent; color: var(--accent); border: 1px solid var(--accent); 
-            padding: 12px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%; 
+            padding: 14px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%; 
             border-radius: 4px; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s;
         }
         .btn-main:hover { background: var(--accent); color: #000; }
         input[type="file"] { display: none; }
-        
-        .copy-hint { font-size: 9px; color: #444; margin-top: 5px; text-align: right; }
     </style>
 </head>
 <body>
@@ -55,41 +55,48 @@
     <div class="viewport-container" id="dropZone">
         <canvas id="canvas"></canvas>
         <div class="drop-hint" id="dropHint">
-            <p style="font-size: 24px; margin-bottom: 10px;">＋</p>
-            <p style="font-size: 12px; letter-spacing: 0.1em;">DROP TEXTURE IMAGE HERE</p>
+            <p style="font-size: 32px; margin-bottom: 10px; color: var(--accent);">＋</p>
+            <p style="font-size: 11px; letter-spacing: 0.1em;">DROP TEXTURE FOR ANALYSIS</p>
         </div>
     </div>
 
     <div class="inspector">
         <div class="card">
             <h3>Picked Point</h3>
-            <div class="color-display">
-                <div id="pickSwatch" class="swatch"></div>
-                <div class="values">
-                    <div class="val-row"><span class="val-label">RGB</span><span id="pickRGB">---, ---, ---</span></div>
-                    <div class="val-row"><span class="val-label">HEX</span><span id="pickHex">#------</span></div>
+            <div id="pickSwatch" class="swatch-large"></div>
+            <div class="value-display">
+                <div class="val-block">
+                    <span class="val-label">MUNSELL VALUE (Approx)</span>
+                    <div class="val-munsell" id="pickMunsell">---</div>
+                </div>
+                <div class="val-block">
+                    <span class="val-label">RGB VALUE</span>
+                    <div class="val-number" id="pickRGB">---, ---, ---</div>
+                </div>
+                <div class="val-block" style="border:none;">
+                    <span class="val-label">HEX CODE</span>
+                    <div class="val-hex" id="pickHex">#------</div>
                 </div>
             </div>
-            <p class="copy-hint">Click image to sample color</p>
         </div>
 
         <div class="card">
             <h3>Texture Average</h3>
-            <div class="color-display">
-                <div id="avgSwatch" class="swatch"></div>
-                <div class="values">
-                    <div class="val-row"><span class="val-label">RGB</span><span id="avgRGB">---, ---, ---</span></div>
-                    <div class="val-row"><span class="val-label">HEX</span><span id="avgHex">#------</span></div>
+            <div id="avgSwatch" class="swatch-large"></div>
+            <div class="value-display">
+                <div class="val-block">
+                    <span class="val-label">MUNSELL VALUE (Approx)</span>
+                    <div class="val-munsell" id="avgMunsell">---</div>
+                </div>
+                <div class="val-block">
+                    <span class="val-label">RGB VALUE</span>
+                    <div class="val-number" id="avgRGB">---, ---, ---</div>
+                </div>
+                <div class="val-block" style="border:none;">
+                    <span class="val-label">HEX CODE</span>
+                    <div class="val-hex" id="avgHex">#------</div>
                 </div>
             </div>
-            <p class="copy-hint">Calculated from entire image</p>
-        </div>
-        
-        <div style="padding: 0 10px;">
-            <p style="font-size: 10px; color: #333; line-height: 1.6;">
-                建築パースのベースカラー設定や、<br>
-                素材のトーン合わせにご活用ください。
-            </p>
         </div>
     </div>
 </main>
@@ -120,8 +127,6 @@
     }
 
     fileInput.onchange = (e) => loadFile(e.target.files[0]);
-
-    // ドロップ対応
     dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#c9a96e'; };
     dropZone.ondragleave = () => { dropZone.style.borderColor = '#333'; };
     dropZone.ondrop = (e) => { e.preventDefault(); loadFile(e.dataTransfer.files[0]); };
@@ -146,9 +151,47 @@
 
     function updateDisplay(prefix, r, g, b) {
         const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+        const munsell = rgbToMunsell(r, g, b);
+        
         document.getElementById(`${prefix}Swatch`).style.background = hex;
         document.getElementById(`${prefix}RGB`).textContent = `${r}, ${g}, ${b}`;
         document.getElementById(`${prefix}Hex`).textContent = hex;
+        document.getElementById(`${prefix}Munsell`).textContent = munsell;
+    }
+
+    // 簡易マンセル変換ロジック
+    function rgbToMunsell(r, g, b) {
+        let r1 = r / 255, g1 = g / 255, b1 = b / 255;
+        let max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1);
+        let h, s, v = max;
+        let d = max - min;
+        s = max === 0 ? 0 : d / max;
+
+        if (max === min) { h = 0; } 
+        else {
+            switch (max) {
+                case r1: h = (g1 - b1) / d + (g1 < b1 ? 6 : 0); break;
+                case g1: h = (b1 - r1) / d + 2; break;
+                case b1: h = (r1 - g1) / d + 4; break;
+            }
+            h /= 6;
+        }
+
+        // マンセルH (色相)
+        const hues = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"];
+        let hueIdx = Math.floor(h * 10);
+        let hueName = hues[hueIdx % 10];
+        
+        // マンセルV (明度: 0-10)
+        let munsellV = (v * 10).toFixed(1);
+        
+        // マンセルC (彩度: 簡易計算)
+        let munsellC = (s * 14).toFixed(1);
+
+        // 無彩色の判定
+        if (s < 0.05) return `N ${munsellV}`;
+        
+        return `${(h * 100 % 10).toFixed(1)}${hueName} ${munsellV}/${munsellC}`;
     }
 </script>
 </body>
