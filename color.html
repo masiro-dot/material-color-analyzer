@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>masiro | Texture Color Analyzer Pro + Munsell</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&family=Inter:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <title>masiro | Texture Lab Pro (High Contrast)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital@1&family=Inter:wght@400;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #c9a96e; --bg: #050505; --card-bg: #121212; --text-muted: #666; }
+        :root { --accent: #c9a96e; --bg: #050505; --card-bg: #121212; --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: var(--bg); color: #eee; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -15,31 +15,35 @@
 
         main { flex: 1; display: flex; padding: 20px; gap: 20px; overflow: hidden; }
 
-        .viewport-container { flex: 1.8; position: relative; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: auto; }
+        .viewport-container { flex: 1.5; position: relative; background: #000; border: 1px dashed #333; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: auto; }
         #canvas { max-width: 100%; max-height: 100%; cursor: crosshair; box-shadow: 0 0 40px rgba(0,0,0,0.8); display: none; }
         .drop-hint { color: #444; text-align: center; pointer-events: none; }
 
-        .inspector { flex: 0 0 420px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
-        .card { background: var(--card-bg); border: 1px solid #222; padding: 25px; border-radius: 8px; }
-        .card h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 20px; border-left: 3px solid var(--accent); padding-left: 12px; }
+        .inspector { flex: 0 0 450px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 5px; }
+        .card { background: var(--card-bg); border: 1px solid #222; padding: 20px; border-radius: 8px; }
+        .card h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); margin-bottom: 15px; border-left: 3px solid var(--accent); padding-left: 12px; }
 
-        .swatch-large { width: 100%; height: 50px; border-radius: 6px; border: 1px solid #333; background: #222; margin-bottom: 15px; }
+        .swatch-large { width: 100%; height: 45px; border-radius: 4px; border: 1px solid #333; background: #222; margin-bottom: 15px; }
         
-        .value-display { font-family: 'JetBrains Mono', monospace; }
-        .val-block { margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a; }
-        .val-label { font-size: 10px; color: var(--accent); opacity: 0.8; letter-spacing: 0.15em; display: block; margin-bottom: 4px; }
+        .value-display { font-family: 'JetBrains Mono', monospace; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .val-block { padding-bottom: 10px; border-bottom: 1px solid #1a1a1a; }
         
-        .val-number { font-size: 34px; font-weight: 500; color: #fff; line-height: 1.1; letter-spacing: -0.02em; }
-        .val-hex { font-size: 28px; font-weight: 500; color: #fff; line-height: 1.1; }
-        .val-munsell { font-size: 28px; font-weight: 500; color: #fff; line-height: 1.1; color: #d0d0d0; }
-
-        .btn-main { 
-            background: transparent; color: var(--accent); border: 1px solid var(--accent); 
-            padding: 14px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%; 
-            border-radius: 4px; text-transform: uppercase; letter-spacing: 0.2em; transition: all 0.3s;
-        }
+        .val-label { font-size: 9px; color: var(--accent); opacity: 0.9; letter-spacing: 0.12em; display: block; margin-bottom: 6px; font-weight: 600; }
+        
+        /* 全ての数値をホワイト＆ボールドに変更 */
+        .val-data { color: var(--text-main); font-weight: 600; line-height: 1.1; }
+        .val-jpma { font-size: 28px; }
+        .val-munsell { font-size: 24px; }
+        .val-rgb { font-size: 20px; }
+        .val-hex { font-size: 20px; }
+        
+        .btn-main { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 12px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.2em; transition: 0.3s; }
         .btn-main:hover { background: var(--accent); color: #000; }
         input[type="file"] { display: none; }
+        
+        .notice { font-size: 9px; color: #555; line-height: 1.4; margin-top: 8px; grid-column: span 2; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -55,8 +59,8 @@
     <div class="viewport-container" id="dropZone">
         <canvas id="canvas"></canvas>
         <div class="drop-hint" id="dropHint">
-            <p style="font-size: 32px; margin-bottom: 10px; color: var(--accent);">＋</p>
-            <p style="font-size: 11px; letter-spacing: 0.1em;">DROP TEXTURE FOR ANALYSIS</p>
+            <p style="font-size: 32px; color: var(--accent);">＋</p>
+            <p style="font-size: 11px;">DROP TEXTURE</p>
         </div>
     </div>
 
@@ -66,16 +70,20 @@
             <div id="pickSwatch" class="swatch-large"></div>
             <div class="value-display">
                 <div class="val-block">
-                    <span class="val-label">MUNSELL VALUE (Approx)</span>
-                    <div class="val-munsell" id="pickMunsell">---</div>
+                    <span class="val-label">JPMA (Approx)</span>
+                    <div class="val-data val-jpma" id="pickJPMA">---</div>
+                </div>
+                <div class="val-block">
+                    <span class="val-label">MUNSELL</span>
+                    <div class="val-data val-munsell" id="pickMunsell">---</div>
                 </div>
                 <div class="val-block">
                     <span class="val-label">RGB VALUE</span>
-                    <div class="val-number" id="pickRGB">---, ---, ---</div>
+                    <div class="val-data val-rgb" id="pickRGB">---, ---, ---</div>
                 </div>
-                <div class="val-block" style="border:none;">
+                <div class="val-block">
                     <span class="val-label">HEX CODE</span>
-                    <div class="val-hex" id="pickHex">#------</div>
+                    <div class="val-data val-hex" id="pickHex">#------</div>
                 </div>
             </div>
         </div>
@@ -85,17 +93,22 @@
             <div id="avgSwatch" class="swatch-large"></div>
             <div class="value-display">
                 <div class="val-block">
-                    <span class="val-label">MUNSELL VALUE (Approx)</span>
-                    <div class="val-munsell" id="avgMunsell">---</div>
+                    <span class="val-label">JPMA (Approx)</span>
+                    <div class="val-data val-jpma" id="avgJPMA">---</div>
+                </div>
+                <div class="val-block">
+                    <span class="val-label">MUNSELL</span>
+                    <div class="val-data val-munsell" id="avgMunsell">---</div>
                 </div>
                 <div class="val-block">
                     <span class="val-label">RGB VALUE</span>
-                    <div class="val-number" id="avgRGB">---, ---, ---</div>
+                    <div class="val-data val-rgb" id="avgRGB">---, ---, ---</div>
                 </div>
-                <div class="val-block" style="border:none;">
+                <div class="val-block">
                     <span class="val-label">HEX CODE</span>
-                    <div class="val-hex" id="avgHex">#------</div>
+                    <div class="val-data val-hex" id="avgHex">#------</div>
                 </div>
+                <p class="notice">※日塗工番号は2024年R版想定の近似値です。</p>
             </div>
         </div>
     </div>
@@ -114,10 +127,8 @@
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-                dropHint.style.display = 'none';
-                canvas.style.display = 'block';
-                canvas.width = img.width;
-                canvas.height = img.height;
+                dropHint.style.display = 'none'; canvas.style.display = 'block';
+                canvas.width = img.width; canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
                 analyzeAverage();
             };
@@ -127,16 +138,13 @@
     }
 
     fileInput.onchange = (e) => loadFile(e.target.files[0]);
-    dropZone.ondragover = (e) => { e.preventDefault(); dropZone.style.borderColor = '#c9a96e'; };
-    dropZone.ondragleave = () => { dropZone.style.borderColor = '#333'; };
+    dropZone.ondragover = (e) => { e.preventDefault(); };
     dropZone.ondrop = (e) => { e.preventDefault(); loadFile(e.dataTransfer.files[0]); };
 
     function analyzeAverage() {
         const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
         let r = 0, g = 0, b = 0;
-        for (let i = 0; i < data.length; i += 4) {
-            r += data[i]; g += data[i+1]; b += data[i+2];
-        }
+        for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i+1]; b += data[i+2]; }
         const count = data.length / 4;
         updateDisplay('avg', Math.round(r/count), Math.round(g/count), Math.round(b/count));
     }
@@ -151,47 +159,43 @@
 
     function updateDisplay(prefix, r, g, b) {
         const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        const munsell = rgbToMunsell(r, g, b);
-        
+        const munsellObj = rgbToMunsell(r, g, b);
+        const jpma = munsellToJPMA(munsellObj);
         document.getElementById(`${prefix}Swatch`).style.background = hex;
         document.getElementById(`${prefix}RGB`).textContent = `${r}, ${g}, ${b}`;
         document.getElementById(`${prefix}Hex`).textContent = hex;
-        document.getElementById(`${prefix}Munsell`).textContent = munsell;
+        document.getElementById(`${prefix}Munsell`).textContent = munsellObj.full;
+        document.getElementById(`${prefix}JPMA`).textContent = jpma;
     }
 
-    // 簡易マンセル変換ロジック
     function rgbToMunsell(r, g, b) {
         let r1 = r / 255, g1 = g / 255, b1 = b / 255;
-        let max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1);
-        let h, s, v = max;
-        let d = max - min;
-        s = max === 0 ? 0 : d / max;
-
-        if (max === min) { h = 0; } 
+        let max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1), d = max - min;
+        let h, v = max, s = max === 0 ? 0 : d / max;
+        if (max === min) h = 0;
         else {
-            switch (max) {
-                case r1: h = (g1 - b1) / d + (g1 < b1 ? 6 : 0); break;
-                case g1: h = (b1 - r1) / d + 2; break;
-                case b1: h = (r1 - g1) / d + 4; break;
-            }
+            if (max === r1) h = (g1 - b1) / d + (g1 < b1 ? 6 : 0);
+            else if (max === g1) h = (b1 - r1) / d + 2;
+            else h = (r1 - g1) / d + 4;
             h /= 6;
         }
-
-        // マンセルH (色相)
         const hues = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"];
-        let hueIdx = Math.floor(h * 10);
-        let hueName = hues[hueIdx % 10];
-        
-        // マンセルV (明度: 0-10)
-        let munsellV = (v * 10).toFixed(1);
-        
-        // マンセルC (彩度: 簡易計算)
-        let munsellC = (s * 14).toFixed(1);
+        let hVal = (h * 100) % 10;
+        let hueName = hues[Math.floor(h * 10) % 10];
+        let V = (v * 10).toFixed(1);
+        let C = (s * 14).toFixed(1);
+        if (s < 0.05) return { h: 0, v: parseFloat(V), c: 0, hue: 'N', full: `N ${V}` };
+        return { h: hVal, v: parseFloat(V), c: parseFloat(C), hue: hueName, full: `${hVal.toFixed(1)}${hueName} ${V}/${C}` };
+    }
 
-        // 無彩色の判定
-        if (s < 0.05) return `N ${munsellV}`;
-        
-        return `${(h * 100 % 10).toFixed(1)}${hueName} ${munsellV}/${munsellC}`;
+    function munsellToJPMA(m) {
+        const prefix = "R";
+        if (m.hue === 'N') return `${prefix}N-${Math.round(m.v * 10)}`;
+        const hueMap = {"R":"05","YR":"15","Y":"25","GY":"35","G":"45","BG":"55","B":"65","PB":"75","P":"85","RP":"95"};
+        let hueNum = hueMap[m.hue] || "05";
+        let vNum = Math.round(m.v * 10);
+        let cNum = Math.round(m.c);
+        return `${prefix}${hueNum}-${vNum}${String.fromCharCode(64 + Math.min(Math.max(cNum, 1), 26))}`;
     }
 </script>
 </body>
