@@ -30,10 +30,7 @@
         
         .val-label { font-size: 9px; color: var(--accent); opacity: 0.9; letter-spacing: 0.12em; display: block; margin-bottom: 6px; font-weight: 600; }
         
-        /* 全ての数値をホワイト＆ボールドに変更 */
         .val-data { color: var(--text-main); font-weight: 600; line-height: 1.1; }
-        .val-jpma { font-size: 28px; }
-        .val-munsell { font-size: 24px; }
         .val-rgb { font-size: 20px; }
         .val-hex { font-size: 20px; }
         
@@ -41,7 +38,6 @@
         .btn-main:hover { background: var(--accent); color: #000; }
         input[type="file"] { display: none; }
         
-        .notice { font-size: 9px; color: #555; line-height: 1.4; margin-top: 8px; grid-column: span 2; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
@@ -70,14 +66,6 @@
             <div id="pickSwatch" class="swatch-large"></div>
             <div class="value-display">
                 <div class="val-block">
-                    <span class="val-label">JPMA (Approx)</span>
-                    <div class="val-data val-jpma" id="pickJPMA">---</div>
-                </div>
-                <div class="val-block">
-                    <span class="val-label">MUNSELL</span>
-                    <div class="val-data val-munsell" id="pickMunsell">---</div>
-                </div>
-                <div class="val-block">
                     <span class="val-label">RGB VALUE</span>
                     <div class="val-data val-rgb" id="pickRGB">---, ---, ---</div>
                 </div>
@@ -93,14 +81,6 @@
             <div id="avgSwatch" class="swatch-large"></div>
             <div class="value-display">
                 <div class="val-block">
-                    <span class="val-label">JPMA (Approx)</span>
-                    <div class="val-data val-jpma" id="avgJPMA">---</div>
-                </div>
-                <div class="val-block">
-                    <span class="val-label">MUNSELL</span>
-                    <div class="val-data val-munsell" id="avgMunsell">---</div>
-                </div>
-                <div class="val-block">
                     <span class="val-label">RGB VALUE</span>
                     <div class="val-data val-rgb" id="avgRGB">---, ---, ---</div>
                 </div>
@@ -108,7 +88,6 @@
                     <span class="val-label">HEX CODE</span>
                     <div class="val-data val-hex" id="avgHex">#------</div>
                 </div>
-                <p class="notice">※日塗工番号は2024年R版想定の近似値です。</p>
             </div>
         </div>
     </div>
@@ -159,43 +138,9 @@
 
     function updateDisplay(prefix, r, g, b) {
         const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
-        const munsellObj = rgbToMunsell(r, g, b);
-        const jpma = munsellToJPMA(munsellObj);
         document.getElementById(`${prefix}Swatch`).style.background = hex;
         document.getElementById(`${prefix}RGB`).textContent = `${r}, ${g}, ${b}`;
         document.getElementById(`${prefix}Hex`).textContent = hex;
-        document.getElementById(`${prefix}Munsell`).textContent = munsellObj.full;
-        document.getElementById(`${prefix}JPMA`).textContent = jpma;
-    }
-
-    function rgbToMunsell(r, g, b) {
-        let r1 = r / 255, g1 = g / 255, b1 = b / 255;
-        let max = Math.max(r1, g1, b1), min = Math.min(r1, g1, b1), d = max - min;
-        let h, v = max, s = max === 0 ? 0 : d / max;
-        if (max === min) h = 0;
-        else {
-            if (max === r1) h = (g1 - b1) / d + (g1 < b1 ? 6 : 0);
-            else if (max === g1) h = (b1 - r1) / d + 2;
-            else h = (r1 - g1) / d + 4;
-            h /= 6;
-        }
-        const hues = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"];
-        let hVal = (h * 100) % 10;
-        let hueName = hues[Math.floor(h * 10) % 10];
-        let V = (v * 10).toFixed(1);
-        let C = (s * 14).toFixed(1);
-        if (s < 0.05) return { h: 0, v: parseFloat(V), c: 0, hue: 'N', full: `N ${V}` };
-        return { h: hVal, v: parseFloat(V), c: parseFloat(C), hue: hueName, full: `${hVal.toFixed(1)}${hueName} ${V}/${C}` };
-    }
-
-    function munsellToJPMA(m) {
-        const prefix = "R";
-        if (m.hue === 'N') return `${prefix}N-${Math.round(m.v * 10)}`;
-        const hueMap = {"R":"05","YR":"15","Y":"25","GY":"35","G":"45","BG":"55","B":"65","PB":"75","P":"85","RP":"95"};
-        let hueNum = hueMap[m.hue] || "05";
-        let vNum = Math.round(m.v * 10);
-        let cNum = Math.round(m.c);
-        return `${prefix}${hueNum}-${vNum}${String.fromCharCode(64 + Math.min(Math.max(cNum, 1), 26))}`;
     }
 </script>
 </body>
